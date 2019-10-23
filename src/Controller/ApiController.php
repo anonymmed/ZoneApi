@@ -216,11 +216,12 @@ class ApiController extends AbstractFOSRestController
 
     /**
      * @Rest\Get("/Api/list")
+     *
      */
     public function customizedListProducts()
     {
         $em = $this->getDoctrine()->getManager();
-        $products = $em->getRepository('App\Entity\Product')->findAll();
+        $products = $em->getRepository('App\Entity\Product')->findBy([] , ['id' => 'DESC' , "name" => 'ASC']);
         $response = [];
         foreach ($products as $key => $p) {
             $response[$key]['name'] = $p->getName();
@@ -232,7 +233,6 @@ class ApiController extends AbstractFOSRestController
         }
         return $this->handleView($this->view($response, Response::HTTP_OK));
     }
-
 
 
 }

@@ -2,12 +2,15 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 
 /**
- * @ApiResource(itemOperations={"get", "delete", "put", "patch"},
- * collectionOperations={"get" = {"method" = "GET" , "path" = "/list"}, "post"})
+ * @ApiResource(paginationClientEnabled=true, itemOperations={"get", "delete", "put", "patch"},
+ * collectionOperations={"get" = {"method" = "GET" , "path" = "/list" , "maximumItemsPerPage"=1}, "post"})
+ * @ApiFilter(OrderFilter::class, properties={"id": "DESC", "name": "ASC"})
  * @ORM\Entity(repositoryClass="App\Repository\ProductRepository")
  * @ORM\HasLifecycleCallbacks()
  */
