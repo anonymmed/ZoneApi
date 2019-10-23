@@ -213,5 +213,27 @@ class ApiController extends AbstractFOSRestController
         }
         return $this->handleView($this->view(['response' => Response::HTTP_BAD_REQUEST], Response::HTTP_OK));
     }
+
+    /**
+     * @Rest\Get("/Api/list")
+     */
+    public function customizedListProducts()
+    {
+        $em = $this->getDoctrine()->getManager();
+        $products = $em->getRepository('App\Entity\Product')->findAll();
+        $response = [];
+        foreach ($products as $key => $p) {
+            $response[$key]['name'] = $p->getName();
+
+            $response[$key]['variation'] = json_encode([
+                'quantity' => $p->getVariation()->getQuantity()
+            ], true);
+
+        }
+        return $this->handleView($this->view($response, Response::HTTP_OK));
+    }
+
+
+
 }
 

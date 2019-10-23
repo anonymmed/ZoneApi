@@ -6,7 +6,8 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ApiResource()
+ * @ApiResource(itemOperations={"get", "delete", "put", "patch"},
+ * collectionOperations={"get" = {"method" = "GET" , "path" = "/list"}, "post"})
  * @ORM\Entity(repositoryClass="App\Repository\ProductRepository")
  * @ORM\HasLifecycleCallbacks()
  */
