@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Entity\RatingHistory;
 use App\Entity\Variation;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -50,8 +51,7 @@ class ApiController extends AbstractFOSRestController
         $product = new Product();
         $product->setName(($request->request->get('name')));
         $product->setPrice($request->request->get('price'));
-        $product->setRating($request->request->getAlnum('rating'));
-
+        $product->setRating(0);
         $variation = new Variation();
 
         $variations = (array)($request->request->get('variations'));
@@ -80,7 +80,6 @@ class ApiController extends AbstractFOSRestController
             $response[$key]['name'] = $p->getName();
             $response[$key]['price'] = $p->getPrice();
             $response[$key]['rating'] = $p->getRating();
-
             $response[$key]['variation'] = json_encode([
                 'color' => $p->getVariation()->getColor(),
                 'size' => $p->getVariation()->getSize(),
@@ -157,23 +156,6 @@ class ApiController extends AbstractFOSRestController
 
     }
 
-    /**
-     * @Rest\Patch("/updateRating")
-     * @param Request $request
-     * @return Response
-     */
-    public function updateProductRating(Request $request)
-    {
-        if (null === $request->request->get('rating')) {
-            return $this->handleView($this->view(['response' => Response::HTTP_OK], Response::HTTP_OK));
-        }
-        $em = $this->getDoctrine()->getManager();
-        $product = $em->getRepository(Product::class)->find($request->get('id'));
-        $product->setRating($request->get('rating'));
-        $em->flush();
-        return $this->handleView($this->view(['response' => Response::HTTP_OK], Response::HTTP_OK));
-
-    }
 
     /**
      * @Rest\Patch("/updateVariation")
@@ -234,6 +216,47 @@ class ApiController extends AbstractFOSRestController
         return $this->handleView($this->view($response, Response::HTTP_OK));
     }
 
+    /**
+     * @Rest\Post("/Api/rate")
+     * @param Request $request
+     * @return Response
+     */
+    public function rateProduct(Request $request) {
+        if (
+            null === $request->request->get('userId') ||
+            null === $request->request->get('productId') ||
+            null === $request->request->get('rating')
+        ) {
+            return $this->handleView($this->view(['response' => Response::HTTP_BAD_REQUEST], Response::HTTP_OK));
+        }
+        $em = $this->getDoctrine()->getManager();
+        $check = $em->getRepository(RatingHistory::class)->findBy(['productId' => $request->request->get('productId'), 'userId' => $request->request->get('userId')]);
+        if (null != $check) {
+            return $this->handleView($this->view(['response' => Response::HTTP_BAD_GATEWAY], Response::HTTP_OK));
+        }
+        $product = $em->getRepository(Product::class)->find($request->request->get('productId'));
+        $allRating = $em->getRepository(RatingHistory::class)->findBy(['productId' => $request->request->get('productId')]);
+        if (0 === count ($allRating)) {
+            $ratingHistory = new RatingHistory();
+            $ratingHistory->setUserId($request->request->get('userId'));
+            $ratingHistory->setProductId($request->request->get('productId'));
+            $ratingHistory->setRating($request->request->get('rating'));
+            $em->persist($ratingHistory);
+            $product->setRating($request->request->get('rating'));
+            $em->flush();
+        } else {
+            $nbRating = count($allRating) +1;
+            $rating = $request->request->get('rating');
+            foreach ($allRating as $rate) {
+                $rating += $rate->getRating();
+            }
+            $avgRating = $rating / $nbRating;
+            $product->setRating($avgRating);
+            $em->flush();
+        }
+        return $this->handleView($this->view(['response' => Response::HTTP_OK], Response::HTTP_OK));
+
+    }
 
 }
 

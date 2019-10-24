@@ -6,10 +6,12 @@ use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 /**
  * @ApiResource(paginationClientEnabled=true, itemOperations={"get", "delete", "put", "patch"},
- * collectionOperations={"get" = {"method" = "GET" , "path" = "/list" , "maximumItemsPerPage"=1}, "post"})
+ * collectionOperations={"get" = {"method" = "GET" , "path" = "/list" , "maximumItemsPerPage"=1}, "rating" = {"method" = "post" , "path" = "/rate"}, "post"})
  * @ApiFilter(OrderFilter::class, properties={"id": "DESC", "name": "ASC"})
  * @ORM\Entity(repositoryClass="App\Repository\ProductRepository")
  * @ORM\HasLifecycleCallbacks()
@@ -37,7 +39,8 @@ class Product
     private $price;
 
     /**
-     * @ORM\Column(type="float")
+     * @ORM\Column(type="float", options={"default" : 0})
+     * @Assert\Length(min=0, max=5)
      */
     private $rating;
 
