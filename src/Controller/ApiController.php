@@ -6,24 +6,22 @@ use App\Entity\Product;
 use App\Entity\RatingHistory;
 use App\Entity\Variation;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use FOS\RestBundle\Controller\Annotations as Rest;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Paginator as ApiPlatformPaginator;
 
 
 class ApiController extends AbstractFOSRestController
 {
-
     /**
      * @Route("/version", name="version")
      */
     public function home()
     {
-        return $this->json(["response" => "1.0"]);
+        return $this->json(['response' => '1.0']);
     }
 
     /**
@@ -36,13 +34,15 @@ class ApiController extends AbstractFOSRestController
 
     /**
      * @Rest\Post("/create")
+     *
      * @param Request $request
+     *
      * @return \Symfony\Component\HttpFoundation\JsonResponse|Response
      */
     public function createProduct(Request $request)
     {
         if (
-            null === $request->request->get('name')  ||
+            null === $request->request->get('name') ||
             null === $request->request->get('price') ||
             null === $request->request->get('rating')
         ) {
@@ -54,7 +54,7 @@ class ApiController extends AbstractFOSRestController
         $product->setRating(0);
         $variation = new Variation();
 
-        $variations = (array)($request->request->get('variations'));
+        $variations = (array) ($request->request->get('variations'));
         $variation->setColor($variations['color']);
         $variation->setQuantity($variations['quantity']);
         $variation->setSize($variations['size']);
@@ -63,8 +63,9 @@ class ApiController extends AbstractFOSRestController
         $em->persist($variation);
         $em->persist($product);
         $em->flush();
+
         return $this->json([
-            'response' => 'product has been added successfully'
+            'response' => 'product has been added successfully',
         ]);
     }
 
@@ -83,22 +84,24 @@ class ApiController extends AbstractFOSRestController
             $response[$key]['variation'] = json_encode([
                 'color' => $p->getVariation()->getColor(),
                 'size' => $p->getVariation()->getSize(),
-                'quantity' => $p->getVariation()->getQuantity()
+                'quantity' => $p->getVariation()->getQuantity(),
             ], true);
-
         }
+
         return $this->handleView($this->view($response, Response::HTTP_OK));
     }
 
     /**
      * @Rest\Put("/update")
+     *
      * @param Request $request
+     *
      * @return Response
      */
     public function updateProduct(Request $request)
     {
         if (
-            null === $request->request->get('name')  ||
+            null === $request->request->get('name') ||
             null === $request->request->get('price') ||
             null === $request->request->get('rating')
         ) {
@@ -116,13 +119,15 @@ class ApiController extends AbstractFOSRestController
         $variation->setSize($variations['size']);
         $variation->setQuantity($variations['quantity']);
         $em->flush();
-        return $this->handleView($this->view(['response' => Response::HTTP_OK], Response::HTTP_OK));
 
+        return $this->handleView($this->view(['response' => Response::HTTP_OK], Response::HTTP_OK));
     }
 
     /**
      * @Rest\Patch("/updateName")
+     *
      * @param Request $request
+     *
      * @return Response
      */
     public function updateProductName(Request $request)
@@ -134,13 +139,15 @@ class ApiController extends AbstractFOSRestController
         $product = $em->getRepository(Product::class)->find($request->get('id'));
         $product->setName($request->get('name'));
         $em->flush();
-        return $this->handleView($this->view(['response' => Response::HTTP_OK], Response::HTTP_OK));
 
+        return $this->handleView($this->view(['response' => Response::HTTP_OK], Response::HTTP_OK));
     }
 
     /**
      * @Rest\Patch("/updatePrice")
+     *
      * @param Request $request
+     *
      * @return Response
      */
     public function updateProductPrice(Request $request)
@@ -152,76 +159,84 @@ class ApiController extends AbstractFOSRestController
         $product = $em->getRepository(Product::class)->find($request->get('id'));
         $product->setPrice($request->get('price'));
         $em->flush();
+
         return $this->handleView($this->view(['response' => Response::HTTP_OK], Response::HTTP_OK));
-
     }
-
 
     /**
      * @Rest\Patch("/updateVariation")
+     *
      * @param Request $request
+     *
      * @return Response
      */
     public function updateProductVariation(Request $request)
     {
-        if ($request->get('id') !== null) {
+        if (null !== $request->get('id')) {
             $em = $this->getDoctrine()->getManager();
             $product = $em->getRepository(Product::class)->find(intval($request->get('id')));
             $product->getVariation()->setQuantity($request->get('quantity'));
             $product->getVariation()->setSize($request->get('size'));
             $product->getVariation()->setColor($request->get('color'));
             $em->flush();
+
             return $this->handleView($this->view(['response' => Response::HTTP_OK], Response::HTTP_OK));
         }
-        return $this->handleView($this->view(['response' => Response::HTTP_BAD_REQUEST], Response::HTTP_OK));
 
+        return $this->handleView($this->view(['response' => Response::HTTP_BAD_REQUEST], Response::HTTP_OK));
     }
 
     /**
      * @Rest\Delete("/delete")
+     *
      * @param Request $request
+     *
      * @return Response
      */
     public function deleteProduct(Request $request)
     {
-        if ($request->get('id') !== null) {
+        if (null !== $request->get('id')) {
             $em = $this->getDoctrine()->getManager();
             $product = $em->getRepository(Product::class)->find($request->get('id'));
-            if ($product !== null) {
+            if (null !== $product) {
                 $em->remove($product);
                 $em->flush();
+
                 return $this->handleView($this->view(['response' => Response::HTTP_OK], Response::HTTP_OK));
             }
         }
+
         return $this->handleView($this->view(['response' => Response::HTTP_BAD_REQUEST], Response::HTTP_OK));
     }
 
     /**
      * @Rest\Get("/Api/list")
-     *
      */
     public function customizedListProducts()
     {
         $em = $this->getDoctrine()->getManager();
-        $products = $em->getRepository('App\Entity\Product')->findBy([] , ['id' => 'DESC' , "name" => 'ASC']);
+        $products = $em->getRepository('App\Entity\Product')->findBy([], ['id' => 'DESC', 'name' => 'ASC']);
         $response = [];
         foreach ($products as $key => $p) {
             $response[$key]['name'] = $p->getName();
 
             $response[$key]['variation'] = json_encode([
-                'quantity' => $p->getVariation()->getQuantity()
+                'quantity' => $p->getVariation()->getQuantity(),
             ], true);
-
         }
+
         return $this->handleView($this->view($response, Response::HTTP_OK));
     }
 
     /**
      * @Rest\Post("/Api/rate")
+     *
      * @param Request $request
+     *
      * @return Response
      */
-    public function rateProduct(Request $request) {
+    public function rateProduct(Request $request)
+    {
         if (
             null === $request->request->get('userId') ||
             null === $request->request->get('productId') ||
@@ -236,7 +251,7 @@ class ApiController extends AbstractFOSRestController
         }
         $product = $em->getRepository(Product::class)->find($request->request->get('productId'));
         $allRating = $em->getRepository(RatingHistory::class)->findBy(['productId' => $request->request->get('productId')]);
-        if (0 === count ($allRating)) {
+        if (0 === count($allRating)) {
             $ratingHistory = new RatingHistory();
             $ratingHistory->setUserId($request->request->get('userId'));
             $ratingHistory->setProductId($request->request->get('productId'));
@@ -245,7 +260,7 @@ class ApiController extends AbstractFOSRestController
             $product->setRating($request->request->get('rating'));
             $em->flush();
         } else {
-            $nbRating = count($allRating) +1;
+            $nbRating = count($allRating) + 1;
             $rating = $request->request->get('rating');
             foreach ($allRating as $rate) {
                 $rating += $rate->getRating();
@@ -254,9 +269,7 @@ class ApiController extends AbstractFOSRestController
             $product->setRating($avgRating);
             $em->flush();
         }
+
         return $this->handleView($this->view(['response' => Response::HTTP_OK], Response::HTTP_OK));
-
     }
-
 }
-

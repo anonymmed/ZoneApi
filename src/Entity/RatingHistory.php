@@ -27,6 +27,11 @@ class RatingHistory
     private $rating;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private $productId;
+
+    /**
      * @return mixed
      */
     public function getRating()
@@ -41,11 +46,6 @@ class RatingHistory
     {
         $this->rating = $rating;
     }
-
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private $productId;
 
     public function getId(): ?int
     {

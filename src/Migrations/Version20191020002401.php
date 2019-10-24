@@ -12,15 +12,15 @@ use Doctrine\Migrations\AbstractMigration;
  */
 final class Version20191020002401 extends AbstractMigration
 {
-    public function getDescription() : string
+    public function getDescription(): string
     {
         return '';
     }
 
-    public function up(Schema $schema) : void
+    public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
+        $this->abortIf('mysql' !== $this->connection->getDatabasePlatform()->getName(), 'Migration can only be executed safely on \'mysql\'.');
 
         $this->addSql('ALTER TABLE product ADD variation_id INT DEFAULT NULL');
         $this->addSql('ALTER TABLE product ADD CONSTRAINT FK_D34A04AD5182BFD8 FOREIGN KEY (variation_id) REFERENCES variation (id)');
@@ -30,10 +30,10 @@ final class Version20191020002401 extends AbstractMigration
         $this->addSql('ALTER TABLE variation DROP product_id');
     }
 
-    public function down(Schema $schema) : void
+    public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
+        $this->abortIf('mysql' !== $this->connection->getDatabasePlatform()->getName(), 'Migration can only be executed safely on \'mysql\'.');
 
         $this->addSql('ALTER TABLE product DROP FOREIGN KEY FK_D34A04AD5182BFD8');
         $this->addSql('DROP INDEX UNIQ_D34A04AD5182BFD8 ON product');

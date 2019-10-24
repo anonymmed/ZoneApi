@@ -89,12 +89,11 @@ class Variation
         $this->product = $product;
 
         // set (or unset) the owning side of the relation if necessary
-        $newVariation = $product === null ? null : $this;
+        $newVariation = null === $product ? null : $this;
         if ($newVariation !== $product->getVariation()) {
             $product->setVariation($newVariation);
         }
 
         return $this;
     }
-
 }

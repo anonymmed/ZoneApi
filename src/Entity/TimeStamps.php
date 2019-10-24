@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Entity;
 
 trait TimeStamps
@@ -13,7 +14,8 @@ trait TimeStamps
      * @ORM\PreUpdate()
      * @ORM\PrePersist()
      */
-    public function updatedAt() {
+    public function updatedAt()
+    {
         $this->updated_at = new \DateTime();
     }
 }

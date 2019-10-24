@@ -8,18 +8,16 @@ use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use Symfony\Component\Validator\Constraints as Assert;
 
-
 /**
- * @ApiResource(paginationClientEnabled=true, itemOperations={"get", "delete", "put", "patch"},
+ * @ApiResource(attributes={"pagination_enabled=true"}, itemOperations={"get", "delete", "put", "patch"},
  * collectionOperations={"get" = {"method" = "GET" , "path" = "/list" , "maximumItemsPerPage"=1}, "rating" = {"method" = "post" , "path" = "/rate"}, "post"})
- * @ApiFilter(OrderFilter::class, properties={"id": "DESC", "name": "ASC"})
+ * @ApiFilter(OrderFilter::class)
  * @ORM\Entity(repositoryClass="App\Repository\ProductRepository")
  * @ORM\HasLifecycleCallbacks()
  */
 class Product
 {
     use TimeStamps;
-
 
     /**
      * @ORM\Id()
@@ -102,7 +100,4 @@ class Product
 
         return $this;
     }
-
-
-
 }
