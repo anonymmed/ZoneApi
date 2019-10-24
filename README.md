@@ -10,8 +10,10 @@ Requirements
 
 Installation
 ------------
+```bash
 $ cd zoneApi
 $ composer install
+```
 Usage
 -----
 
